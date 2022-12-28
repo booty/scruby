@@ -107,7 +107,6 @@ class Board
     validate_board!
   end
 
-  # todo
   def validate_words!
     words.each do |word|
       next if @dictionary.word?(word)
@@ -119,6 +118,7 @@ class Board
   # Validates the "shape" of the board; i.e. it should be a 15x15 board
   def validate_board!
     return if @board.length == BOARD_HEIGHT_WIDTH**2
+
     raise InvalidBoard.new(
       "Wrong board size; has #{@board.length} chars but should have " \
       "#{BOARD_HEIGHT_WIDTH} * #{BOARD_HEIGHT_WIDTH} = " \
@@ -143,7 +143,7 @@ class Board
   end
 
   def rows
-    @board.scan(/.{1,#{BOARD_HEIGHT_WIDTH}}/)
+    @board.scan(/.{1,#{BOARD_HEIGHT_WIDTH}}/o)
   end
 
   def lines_to_words(lines)
