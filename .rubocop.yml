@@ -1,8 +1,5 @@
-# Rubocop 0.82.0
 require:
-  # We'd like to enable this ASAP once Hound supports it.
-  # see: https://github.com/houndci/hound/issues/1782
-  # - rubocop-performance
+  - rubocop-performance
   - rubocop-rails
   - rubocop-rspec
 
@@ -19,22 +16,13 @@ AllCops:
     - config/initializers/*
     - config/environments/*
   ExtraDetails: true
+  NewCops: enable
 
 Naming/MemoizedInstanceVariableName:
   EnforcedStyleForLeadingUnderscores: optional
 
 Naming/AccessorMethodName:
   Description: Check the naming of accessor methods for get_/set_.
-  Enabled: false
-
-Style/Alias:
-  Description: 'Use alias_method instead of alias.'
-  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#alias-method'
-  Enabled: false
-
-Style/ArrayJoin:
-  Description: 'Use Array#join instead of Array#*.'
-  StyleGuide: 'https://github.com/bbatsov/ruby-style-guide#array-join'
   Enabled: false
 
 Style/AsciiComments:
