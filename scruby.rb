@@ -3,7 +3,7 @@
 require "bundler"
 require "zlib"
 require "benchmark/ips"
-# require "pry-byebug"
+require "pry-byebug"
 
 EMPTY_BOARD = <<~SCRABBLE
   ...............
@@ -24,21 +24,39 @@ EMPTY_BOARD = <<~SCRABBLE
 SCRABBLE
 
 BOARD_WITH_WORDS = <<~YAY
-  ...............
+  HELLO..........
   ...............
   ...............
   ...............
   .....CAT.......
-  ...............
-  ...............
+  .....A.........
+  .....R.........
   ...............
   ...APPLE.PLANET
   ...............
+  W..............
+  A..............
+  T..............
+  C..............
+  H..............
+YAY
+
+BOARD_WITH_INVALID_WORDS = <<~YAY
+  HELLO..........
   ...............
   ...............
   ...............
+  .....CAT.......
+  .....A.........
+  .....R.........
   ...............
+  ...APPLE.PLANET
   ...............
+  W.....XYZ......
+  A..............
+  T..............
+  C..............
+  H..............
 YAY
 
 class DictionarySet
@@ -65,10 +83,14 @@ class DictionarySet
     end
   end
 
+  def to_s
+    "your dad"
+  end
+
   private
 
   def get_word_set(path)
-    Zlib::GzipReader.new(File.open(path)).readlines.to_set
+    Zlib::GzipReader.new(File.open(path)).readlines.map { |x| x.gsub("\n","") }.to_set
   end
 end
 
@@ -76,9 +98,10 @@ class Board
   BOARD_HEIGHT_WIDTH = 15
 
   class InvalidBoard < StandardError; end
+  class InvalidWord < StandardError; end
 
   def initialize(board = EMPTY_BOARD)
-    @board = board
+    @board = board.gsub("\n", "")
     @dictionary = DictionarySet.new
 
     validate_board!
@@ -86,34 +109,53 @@ class Board
 
   # todo
   def validate_words!
-    true
+    words.each do |word|
+      next if @dictionary.word?(word)
+
+      raise InvalidWord.new("\"#{word}\" is not a valid word, pal")
+    end
   end
 
   # Validates the "shape" of the board; i.e. it should be a 15x15 board
   def validate_board!
-    lines = @board.split("\n")
-
-    unless lines.length == BOARD_HEIGHT_WIDTH
-      raise InvalidBoard.new("Wrong number of lines (#{lines.length}")
-    end
-
-    lines.each_with_index do |line, index|
-      next if line.length == BOARD_HEIGHT_WIDTH
-
-      raise InvalidBoard.new(
-        "Line #{index} has #{line.length} chars (should be #{BOARD_HEIGHT_WIDTH})",
-      )
-    end
+    return if @board.length == BOARD_HEIGHT_WIDTH**2
+    raise InvalidBoard.new(
+      "Wrong board size; has #{@board.length} chars but should have " \
+      "#{BOARD_HEIGHT_WIDTH} * #{BOARD_HEIGHT_WIDTH} = " \
+      "#{BOARD_HEIGHT_WIDTH**2} chars",
+    )
   end
 
-  private
+  # private
 
   def words
-    "ok"
+    lines_to_words(cols) + lines_to_words(rows)
+  end
+
+  def cols
+    result = Array.new(BOARD_HEIGHT_WIDTH) { +"" } # +"" is an unfrozen string literal
+    0.upto(BOARD_HEIGHT_WIDTH - 1) do |x|
+      0.upto(BOARD_HEIGHT_WIDTH - 1) do |y|
+        result[x] << @board[(y * BOARD_HEIGHT_WIDTH) + x]
+      end
+    end
+    result
+  end
+
+  def rows
+    @board.scan(/.{1,#{BOARD_HEIGHT_WIDTH}}/)
+  end
+
+  def lines_to_words(lines)
+    lines.
+      map { |x| x.split(".") }.
+      flatten.
+      reject { |x| x.length < 2 }
   end
 end
 
 puts "Ruby version: #{RUBY_VERSION}"
 b1 = Board.new(BOARD_WITH_WORDS)
-
-d1 = DictionarySet.new.bench
+b1.validate_words!
+b2 = Board.new(BOARD_WITH_INVALID_WORDS)
+b2.validate_words!
