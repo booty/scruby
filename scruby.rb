@@ -90,7 +90,8 @@ class DictionarySet
   private
 
   def get_word_set(path)
-    Zlib::GzipReader.new(File.open(path)).readlines.map { |x| x.gsub("\n","") }.to_set
+    Zlib::GzipReader.new(File.open(path)).
+      readlines.map { |x| x.delete("\n") }.to_set
   end
 end
 
@@ -101,7 +102,7 @@ class Board
   class InvalidWord < StandardError; end
 
   def initialize(board = EMPTY_BOARD)
-    @board = board.gsub("\n", "")
+    @board = board.delete("\n")
     @dictionary = DictionarySet.new
 
     validate_board!
